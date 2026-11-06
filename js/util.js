@@ -40,10 +40,6 @@ export function shortAgo(ms) {
 export const riskOf = (score) => (score >= 8 ? 'low' : score >= 5 ? 'medium' : 'high');
 export const RISK_LABEL = { low: 'Low risk', medium: 'Medium risk', high: 'High risk' };
 
-// A coin with red flags is high risk at any age; otherwise a first-day coin just can't be judged yet.
-export const riskLabel = ({ score, tooNew }) =>
-  tooNew && riskOf(score) !== 'high' ? 'Too new to judge' : RISK_LABEL[riskOf(score)];
-
 export function el(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;

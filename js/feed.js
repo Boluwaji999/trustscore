@@ -5,7 +5,7 @@
 import { analyze } from './analyze.js';
 import { getNewPools, getSecurity, RateLimitError } from './api.js';
 import { FEED_CHAINS, chainById } from './config.js';
-import { $, el, money, riskLabel, riskOf, shortAgo, storeGet, storeSet, wait } from './util.js';
+import { $, el, money, riskOf, RISK_LABEL, shortAgo, storeGet, storeSet, wait } from './util.js';
 
 const PER_NETWORK = 6;
 const CACHE_MS = 5 * 60 * 1000;
@@ -34,7 +34,7 @@ function card(item, chain) {
     // Only animate a score the first time it appears, not on every re-render.
     const badge = el('span', `feed-score ${risk}${item.shown ? '' : ' fresh'}`);
     item.shown = true;
-    badge.append(el('b', '', String(item.score)), document.createTextNode(riskLabel(item)));
+    badge.append(el('b', '', String(item.score)), document.createTextNode(RISK_LABEL[risk]));
     head.append(badge);
   } else if (item.state === 'pending') {
     head.append(el('span', 'feed-score pending', 'Checking…'));
@@ -56,9 +56,8 @@ function render(items, chain) {
   $('feed-grid').replaceChildren(...items.map((it) => card(it, chain)));
   const done = items.filter((i) => i.state === 'done');
   const high = done.filter((i) => riskOf(i.score) === 'high').length;
-  const unjudged = done.filter((i) => i.tooNew && riskOf(i.score) !== 'high').length;
   $('feed-summary').textContent = done.length
-    ? `${high} of the ${done.length} newest coins checked on ${chain.name} ${high === 1 ? 'is' : 'are'} high risk${unjudged ? `, and ${unjudged} ${unjudged === 1 ? 'is' : 'are'} too new to judge.` : '.'}`
+    ? `${high} of the ${done.length} newest coins checked on ${chain.name} ${high === 1 ? 'is' : 'are'} high risk.`
     : '';
 }
 
@@ -105,7 +104,6 @@ async function load(chainId) {
         const result = analyze(chain, sec, item.market, item.address);
         item.state = 'done';
         item.score = result.score;
-        item.tooNew = result.tooNew;
         item.symbol = result.symbol || item.symbol;
         item.top = result.findings.find((f) => f.level === 'danger')?.title || null;
       } else {
