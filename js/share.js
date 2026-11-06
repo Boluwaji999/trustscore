@@ -1,6 +1,6 @@
 // Draws a 1200x630 result card on a canvas so people can post it on X / Telegram.
 
-import { riskOf, RISK_LABEL, shortAddress } from './util.js';
+import { riskLabel, riskOf, shortAddress } from './util.js';
 
 const W = 1200;
 const H = 630;
@@ -120,7 +120,7 @@ export async function makeCard({ chain, address, result }) {
 
   // Risk badge
   ctx.font = `500 20px ${sans}`;
-  const label = RISK_LABEL[risk];
+  const label = riskLabel(result);
   const bw = ctx.measureText(label).width + 52;
   ctx.fillStyle = `${tone}22`;
   roundRect(ctx, 64, 290, bw, 44, 22);

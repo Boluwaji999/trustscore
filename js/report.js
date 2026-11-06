@@ -1,7 +1,7 @@
 // Renders the report (summary card, holder chart, findings), the loader and status messages.
 
 import { COUNTED_KINDS } from './analyze.js';
-import { $, el, money, pct, reduceMotion, riskOf, RISK_LABEL, shortAddress } from './util.js';
+import { $, el, money, pct, reduceMotion, riskLabel, riskOf, shortAddress } from './util.js';
 
 const GROUPS = [
   ['danger', 'High risk'],
@@ -102,7 +102,7 @@ export function renderReport(report, { quiet = false } = {}) {
 
   const risk = riskOf(result.score);
   $('score').className = `score ${risk}`;
-  $('score-label').textContent = RISK_LABEL[risk];
+  $('score-label').textContent = riskLabel(result);
   $('meter').replaceChildren(...Array.from({ length: 10 }, () => el('span')));
 
   const marketEl = $('market');

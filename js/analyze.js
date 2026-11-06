@@ -10,6 +10,10 @@ const BURN = new Set([
 
 const LEVEL_ORDER = { danger: 0, warn: 1, info: 2, good: 3 };
 
+// Almost every new coin fades within days, so a clean first-day report can't mean low risk yet.
+const TOO_NEW_HOURS = 24;
+const TOO_NEW_MAX_SCORE = 6;
+
 const isBurn = (a) => BURN.has(lower(a)) || BURN.has(String(a || ''));
 
 // `creator` is the Pons creator record from creator.js, once it has loaded.
@@ -30,9 +34,11 @@ export function analyze(chain, sec, market, address, creator = null) {
   let score = Math.min(10, Math.max(0, Math.floor((100 - penalty) / 10)));
   // Two or more red flags is high risk no matter how good the rest looks.
   if (findings.filter((f) => f.level === 'danger').length >= 2) score = Math.min(score, 4);
+  const tooNew = !!market?.createdAt && (Date.now() - market.createdAt) / 36e5 < TOO_NEW_HOURS;
+  if (tooNew) score = Math.min(score, TOO_NEW_MAX_SCORE);
   findings.sort((a, b) => LEVEL_ORDER[a.level] - LEVEL_ORDER[b.level]);
 
-  return { ...token, findings, score };
+  return { ...token, findings, score, tooNew };
 }
 
 // ---------- EVM networks ----------
@@ -320,7 +326,7 @@ function marketFindings(market, add) {
   if (market.createdAt) {
     const ageHours = (Date.now() - market.createdAt) / 36e5;
     const title = `Started trading ${timeAgo(market.createdAt)} ago`;
-    if (ageHours < 24) add('warn', title, 'Brand-new coins are the riskiest. Most rug pulls happen in the first day.', 10);
+    if (ageHours < TOO_NEW_HOURS) add('warn', title, "It's too new to judge. Most new coins fade fast, so its score is capped until it has lasted a day.", 10);
     else if (ageHours < 24 * 7) add('warn', title, "It's still very new. Give it time to prove itself.", 5);
     else add('good', title, "It's been around for a while, which is a better sign than a brand-new coin.");
   }
