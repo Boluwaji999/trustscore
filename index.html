@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrustScore</title>
+  <meta name="description" content="Check a coin before you buy it. Paste a contract address or search by name and get a plain-English rug-pull risk report.">
+
+  <!-- Link previews (X, Telegram, Discord, iMessage). If you move to your own domain, update the two image addresses below. -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="TrustScore">
+  <meta property="og:title" content="TrustScore: check a coin before you buy it">
+  <meta property="og:description" content="Free rug-pull risk reports in plain English. Honeypots, hidden owners, unlocked liquidity, whale wallets and more.">
+  <meta property="og:image" content="https://boluwaji999.github.io/trustscore/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://boluwaji999.github.io/trustscore/og.png">
+  <meta name="theme-color" content="#09090b">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Cpath d='M16 6l8 3v6c0 5-3.4 8.6-8 11-4.6-2.4-8-6-8-11V9l8-3z' fill='none' stroke='%23ededef' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M12.5 15.5l2.5 2.5 4.5-5' fill='none' stroke='%233ecf8e' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Free, privacy-friendly analytics. Create a site in Cloudflare Web Analytics, then paste your
+       token in place of YOUR_TOKEN and remove the comment markers around this line.
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_TOKEN"}'></script>
+  -->
+</head>
+<body>
+  <header class="nav">
+    <span class="page-progress" aria-hidden="true"></span>
+    <div class="nav-inner">
+      <a class="brand" href="./">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4l9 3.4v6.8c0 5.6-3.8 9.7-9 12.4-5.2-2.7-9-6.8-9-12.4V7.4L16 4z"/><path class="tick" d="M12.2 15.6l2.8 2.8 5-5.6"/></svg>
+        TrustScore
+      </a>
+      <nav class="nav-links">
+        <a href="#feed">New coins</a>
+        <a href="#how">What we check</a>
+        <span class="nav-pill">Free · No sign-up</span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- The 3D scene: fixed behind the whole page. -->
+  <div id="flow-stage" class="flow-stage" aria-hidden="true">
+    <canvas id="flow-canvas"></canvas>
+    <span id="flow-flag" class="flow-flag"></span>
+  </div>
+
+  <main class="wrap">
+    <section class="hero">
+      <p class="kicker"><span class="live-dot"></span>Robinhood Chain, Solana + 5 more networks</p>
+      <h1>Check a coin<br>before you buy it.</h1>
+      <p class="lede">Search a coin by name or paste its contract address. We scan for honeypots, hidden owners, unlocked liquidity and other rug-pull signals, then explain each finding in plain English.</p>
+
+      <form id="check-form" class="cmd" autocomplete="off">
+        <label class="sr-only" for="chain">Network</label>
+        <div class="cmd-chain">
+          <select id="chain" name="chain"></select>
+          <svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+        </div>
+        <label class="sr-only" for="address">Coin name or contract address</label>
+        <div class="cmd-input">
+          <input id="address" name="address" type="text" placeholder="Search a coin or paste an address" spellcheck="false" required
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results">
+          <ul id="search-results" class="search-results" role="listbox" hidden></ul>
+        </div>
+        <button id="check-btn" class="btn btn-primary" type="submit">Analyze <kbd>↵</kbd></button>
+      </form>
+
+      <div class="examples">
+        <span>Try</span>
+        <button type="button" class="chip" data-chain="1" data-address="0x6982508145454ce325ddbe47a25d4ec3d2311933">PEPE <em>Ethereum</em></button>
+        <button type="button" class="chip" data-chain="solana" data-address="DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263">BONK <em>Solana</em></button>
+        <button type="button" class="chip" data-chain="4663" data-address="0x34e276cb8c198724b3eae3c0307d49e91cb09946">ROBINHOOD <em>Robinhood Chain</em></button>
+      </div>
+      <div id="recent" class="recent" hidden></div>
+    </section>
+
+    <section id="loader" class="loader card" hidden>
+      <div class="loader-head">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Analyzing <code id="loader-addr"></code></span>
+      </div>
+      <ol id="loader-steps" class="loader-steps"></ol>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <section id="report" class="report" hidden>
+      <aside class="summary card">
+        <div class="summary-token">
+          <p class="label">Token</p>
+          <div class="token-row">
+            <img id="token-logo" class="token-logo" alt="" hidden>
+            <h2 id="token-name"></h2>
+          </div>
+          <p id="token-meta" class="meta"></p>
+        </div>
+
+        <div id="score" class="score">
+          <p class="label">Risk score</p>
+          <div class="score-line">
+            <span id="score-num" class="score-num">0</span>
+            <span class="score-of">/ 10</span>
+            <span id="score-label" class="badge"></span>
+          </div>
+          <div id="meter" class="meter" aria-hidden="true"></div>
+          <p class="score-hint">Higher is safer. Based on the findings on this page.</p>
+        </div>
+
+        <dl id="market" class="market"></dl>
+
+        <div class="actions">
+          <button id="image-btn" class="btn btn-primary btn-wide" type="button">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M3 13h10"/></svg>
+            Save result image
+          </button>
+          <button id="share-btn" class="btn btn-secondary" type="button">Copy link</button>
+          <a id="share-x" class="btn btn-secondary" target="_blank" rel="noopener">Share on X</a>
+        </div>
+      </aside>
+
+      <div class="findings">
+        <section id="creator-card" class="creator card" hidden></section>
+        <div class="findings-head">
+          <h3>Findings</h3>
+          <div id="tally" class="tally"></div>
+        </div>
+        <div id="checks"></div>
+
+        <section id="holders" class="holders card" hidden>
+          <div class="holders-head">
+            <h3>Top 10 holders</h3>
+            <p class="meta">% of total supply</p>
+          </div>
+          <ul id="holder-bars" class="holder-bars"></ul>
+          <p class="holders-note">Faded bars are pools, locked or burned coins. Nobody can dump those, so they don't count toward the whale check.</p>
+        </section>
+      </div>
+    </section>
+
+    <section id="feed" class="feed">
+      <div class="feed-head">
+        <div>
+          <p class="label"><span class="live-dot"></span> Live</p>
+          <h2>New coins, already checked.</h2>
+          <p class="feed-sub">The newest coins to start trading, each run through the same checkup.</p>
+        </div>
+        <div id="feed-tabs" class="tabs" role="tablist" aria-label="Network"></div>
+      </div>
+      <p id="feed-summary" class="feed-summary" aria-live="polite"></p>
+      <div id="feed-grid" class="feed-grid"></div>
+      <p class="feed-note">Quick scores from GoPlus and GeckoTerminal · Refreshes every 5 minutes · Open a coin for its full report, including creator history</p>
+    </section>
+
+    <section id="how" class="features">
+      <p class="label">What we check</p>
+      <h2>Six things scammers hope you miss.</h2>
+      <div class="feature-grid">
+        <article class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>
+          <h4>Can you sell?</h4>
+          <p>We test whether a coin can really be sold, to catch honeypots: coins you can buy but never sell. This test isn't available on Solana.</p>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+          <h4>Who's in control</h4>
+          <p>Hidden owners, ownership that can be taken back, freeze keys, and powers to pause or blacklist.</p>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 10l7-7 7 7"/></svg>
+          <h4>Unlimited minting</h4>
+          <p>Whether the creator can print new coins and water down what you hold.</p>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <h4>Locked liquidity</h4>
+          <p>If the trading pool isn't locked, the creator can pull it and leave you stuck.</p>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          <h4>Whale wallets</h4>
+          <p>How much the top wallets and the creator hold, and could dump at once.</p>
+        </article>
+        <article class="feature">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/></svg>
+          <h4>Fees &amp; age</h4>
+          <p>Buy and sell taxes, fees that can be changed later, and how new the coin is.</p>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p><strong>Information, not advice.</strong> A high score doesn't mean a coin is safe or will go up, and a low score doesn't prove it's a scam. Always do your own research.</p>
+      <p class="meta">Security data by GoPlus · Market data by DexScreener &amp; GeckoTerminal</p>
+    </footer>
+  </main>
+
+  <div id="chart-tip" class="chart-tip" role="tooltip" hidden></div>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
