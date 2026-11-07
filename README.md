@@ -1,5 +1,7 @@
 # 🛡️ TrustScore
 
+**Live at [usetrustscore.xyz](https://usetrustscore.xyz)**
+
 Check a coin before you buy it. Search by name or paste a contract address and get a plain-English risk report: honeypots, hidden owners, unlimited minting, freeze keys, unlocked liquidity, whale wallets, high fees and brand-new coins.
 
 - **Networks:** Robinhood Chain, Solana, Ethereum, Base, Arbitrum, BNB Chain, Polygon
