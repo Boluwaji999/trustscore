@@ -1,0 +1,16 @@
+{
+  "name": "trustscore-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --format=esm --target=es2022 --platform=neutral --main-fields=module,main --outfile=dist/worker.js",
+    "test": "node test/run.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

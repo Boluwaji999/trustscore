@@ -12,7 +12,8 @@ export const sameAddress = (a, b) => normalizeAddress(String(a || '')) === norma
 
 export const shortAddress = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
-export const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Guarded so this module also loads on the server, where there's no screen.
+export const reduceMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export const money = (n) =>
   new Intl.NumberFormat('en-US', {

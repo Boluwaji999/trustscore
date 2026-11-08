@@ -24,6 +24,7 @@ Then push. Everything else is already in place.
 - **Search by name or ticker**, with logos, plus a warning when several coins share a name (copycats)
 - **Auto-detects the network** from the address
 - **Risk score out of 10** with grouped findings: High risk, Caution, Notes, Passed
+- **Premium for TrustScore token holders:** connect a wallet and sign a free message to unlock Creator Track Record and the new coins feed. Holding is checked on the server (see `worker/README.md`).
 - **Creator Track Record** for Pons coins: who launched it, how many coins they have launched, how many are still trading, and their best coin
 - **Top 10 holders chart** with pools, locked and burned wallets labeled
 - **Live "new coins" feed** of the newest coins on Robinhood Chain, Base, Solana and Ethereum, already scored
@@ -43,7 +44,10 @@ Then push. Everything else is already in place.
 | `js/main.js` | Wires everything together, runs a check |
 | `js/config.js` | Networks, feed tabs, optional proxy URL |
 | `js/api.js` | All calls to the data services |
-| `js/creator.js` | Creator Track Record: reads Pons launches from the chain |
+| `js/premium.js` | Wallet sign-in, the holder pass, and the locked panels |
+| `js/creator.js` | Asks the Worker for Creator Track Record |
+| `js/creator-core.js` | Creator Track Record rules (run on the Worker) |
+| `js/feed-core.js` | Builds the new coins feed (run on the Worker) |
 | `js/analyze.js` | **The rules:** every finding and its penalty, for EVM and Solana |
 | `js/report.js` | Draws the report, holder chart and loader |
 | `js/search.js` | Name search dropdown |
@@ -53,7 +57,7 @@ Then push. Everything else is already in place.
 | `js/scroll.js` | Progress bar, hero fade and section reveals on scroll |
 | `js/share.js` | Result image |
 | `js/recent.js` | Recent checks |
-| `worker/` | Optional caching proxy (see `worker/README.md`) |
+| `worker/` | The Worker: premium sign-in, premium data and caching (see `worker/README.md`) |
 
 To change how strict the checker is, edit `js/analyze.js`. Each finding has a penalty, the score is `(100 − penalties) ÷ 10`, and two or more red flags cap the score at 4.
 

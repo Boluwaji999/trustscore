@@ -5,7 +5,8 @@ import { analyze } from './analyze.js';
 import { getCreatorHistory } from './creator.js';
 import { detectChain, getMarket, getSecurity, RateLimitError } from './api.js';
 import { CHAINS, PONS, chainById } from './config.js';
-import { wireFeed } from './feed.js';
+import { reloadFeed, wireFeed } from './feed.js';
+import { isUnlocked, LockedError, onPremiumChange, wirePremium } from './premium.js';
 import { startHeroScene } from './hero.js';
 import { wireScroll } from './scroll.js';
 import { addRecent, wireRecent } from './recent.js';
@@ -22,6 +23,7 @@ const reportEl = $('report');
 
 let currentRun = 0;
 let lastReport = null;
+let lastSec = null; // the open report's safety data, to rescore once creator history arrives
 
 const BUSY_MESSAGE = 'The safety service is busy right now. Wait a minute and try again.';
 
@@ -74,6 +76,7 @@ async function runCheck(chain, rawAddress) {
     renderReport(lastReport);
     addRecent({ chain, address, symbol: result.symbol, name: result.name, score: result.score });
     reportEl.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    lastSec = secResult;
     if (chain.id === PONS.chainId) loadCreator(run, secResult);
     else renderCreator(null);
   } catch (err) {
@@ -89,13 +92,16 @@ async function runCheck(chain, rawAddress) {
 // The chain lookup takes a few seconds, so the report shows first and this fills in behind it.
 async function loadCreator(run, sec) {
   const { chain, address, market } = lastReport;
+  if (!isUnlocked()) return renderCreator('locked');
   renderCreator('loading');
   let creator;
   try {
     creator = await getCreatorHistory(address, market?.createdAt);
   } catch (err) {
+    if (run !== currentRun) return;
+    if (err instanceof LockedError) return renderCreator('locked');
     console.warn('Creator history unavailable.', err);
-    if (run === currentRun) renderCreator('error');
+    renderCreator('error');
     return;
   }
   if (run !== currentRun) return;
@@ -145,6 +151,13 @@ form.addEventListener('submit', async (e) => {
 wireSearch((r) => openCoin(r.chain, r.address));
 wireRecent(openCoin);
 wireFeed(openCoin);
+wirePremium();
+
+// Unlocking (or signing out) refreshes the premium parts already on screen.
+onPremiumChange(() => {
+  reloadFeed();
+  if (lastReport?.chain.id === PONS.chainId && lastSec) loadCreator(currentRun, lastSec);
+});
 wireHolderTooltip();
 wireScroll();
 startHeroScene();

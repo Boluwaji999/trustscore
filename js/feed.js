@@ -1,18 +1,16 @@
 // "New coins, already checked": newest pools per network, each run through the same checkup.
-// Kept small and cached because the free APIs are rate limited, which is also why these scores
-// leave out creator history: the full report on each coin includes it.
+// A premium feature: the Worker builds it (feed-core.js), caches it, and only sends it to holders.
 
-import { analyze } from './analyze.js';
-import { getNewPools, getSecurity, RateLimitError } from './api.js';
-import { FEED_CHAINS, chainById } from './config.js';
-import { $, el, money, riskOf, RISK_LABEL, shortAgo, storeGet, storeSet, wait } from './util.js';
+import { chainById, FEED_CHAINS } from './config.js';
+import { isUnlocked, LockedError, lockPanel, premiumFetch } from './premium.js';
+import { $, el, money, riskOf, RISK_LABEL, shortAgo, storeGet, storeSet } from './util.js';
 
 const PER_NETWORK = 6;
 const CACHE_MS = 5 * 60 * 1000;
-const GAP_MS = 350; // spacing between safety checks so we stay under the free rate limit
 
 let current = FEED_CHAINS[0];
 let generation = 0;
+let started = false;
 let onPick = () => {};
 
 const cacheKey = (id) => `trustscore:feed:${id}`;
@@ -36,8 +34,6 @@ function card(item, chain) {
     item.shown = true;
     badge.append(el('b', '', String(item.score)), document.createTextNode(RISK_LABEL[risk]));
     head.append(badge);
-  } else if (item.state === 'pending') {
-    head.append(el('span', 'feed-score pending', 'Checking…'));
   } else {
     head.append(el('span', 'feed-score none', item.state === 'limited' ? 'Try later' : 'Not scanned yet'));
   }
@@ -48,7 +44,6 @@ function card(item, chain) {
 
   btn.append(head, stats);
   btn.addEventListener('click', () => onPick(chain, item.address));
-  if (item.state === 'pending') btn.classList.add('is-pending');
   return btn;
 }
 
@@ -61,6 +56,14 @@ function render(items, chain) {
     : '';
 }
 
+function showLocked() {
+  $('feed-summary').textContent = '';
+  const panel = lockPanel('New coins, already checked',
+    'The newest coins on Robinhood Chain, Base, Solana and Ethereum, scored as they launch.');
+  panel.classList.add('feed-lock');
+  $('feed-grid').replaceChildren(panel);
+}
+
 function skeleton() {
   $('feed-summary').textContent = '';
   $('feed-grid').replaceChildren(...Array.from({ length: PER_NETWORK }, () => el('div', 'feed-card skeleton')));
@@ -69,55 +72,25 @@ function skeleton() {
 async function load(chainId) {
   const run = ++generation;
   const chain = chainById(chainId);
+  if (!isUnlocked()) return showLocked();
 
   const cached = storeGet(sessionStorage, cacheKey(chainId), null);
-  if (cached && Date.now() - cached.at < CACHE_MS) {
-    render(cached.items, chain);
-    return;
-  }
+  if (cached && Date.now() - cached.at < CACHE_MS) return render(cached.items, chain);
 
   skeleton();
-  let items;
   try {
-    items = (await getNewPools(chain)).slice(0, PER_NETWORK).map((t) => ({ ...t, state: 'pending' }));
+    const { items } = await premiumFetch(`/premium/feed?chain=${chainId}`);
+    if (run !== generation) return;
+    if (!items.length) {
+      $('feed-grid').replaceChildren(el('p', 'feed-empty', `No new coins on ${chain.name} right now.`));
+      return;
+    }
+    render(items, chain);
+    storeSet(sessionStorage, cacheKey(chainId), { at: Date.now(), items });
   } catch (err) {
     if (run !== generation) return;
-    $('feed-grid').replaceChildren(
-      el('p', 'feed-empty', err instanceof RateLimitError
-        ? 'The new-coins service is busy. Give it a minute and switch tabs to retry.'
-        : "Couldn't load new coins right now.")
-    );
-    return;
-  }
-  if (run !== generation) return;
-  if (!items.length) {
-    $('feed-grid').replaceChildren(el('p', 'feed-empty', `No new coins on ${chain.name} right now.`));
-    return;
-  }
-  render(items, chain);
-
-  for (const item of items) {
-    if (run !== generation) return;
-    try {
-      const sec = await getSecurity(chain, item.address);
-      if (sec) {
-        const result = analyze(chain, sec, item.market, item.address);
-        item.state = 'done';
-        item.score = result.score;
-        item.symbol = result.symbol || item.symbol;
-        item.top = result.findings.find((f) => f.level === 'danger')?.title || null;
-      } else {
-        item.state = 'none';
-      }
-    } catch (err) {
-      item.state = err instanceof RateLimitError ? 'limited' : 'none';
-    }
-    if (run !== generation) return;
-    render(items, chain);
-    await wait(GAP_MS);
-  }
-  if (!items.some((i) => i.state === 'limited')) {
-    storeSet(sessionStorage, cacheKey(chainId), { at: Date.now(), items });
+    if (err instanceof LockedError) return showLocked();
+    $('feed-grid').replaceChildren(el('p', 'feed-empty', "Couldn't load new coins right now. Try again in a minute."));
   }
 }
 
@@ -139,13 +112,19 @@ function renderTabs() {
   );
 }
 
+// After signing in or out.
+export function reloadFeed() {
+  if (started) load(current);
+}
+
 export function wireFeed(handler) {
   onPick = handler;
   renderTabs();
-  // Only start calling APIs once the feed scrolls into view.
+  // Only load once the feed scrolls into view.
   const io = new IntersectionObserver((entries) => {
     if (entries.some((e) => e.isIntersecting)) {
       io.disconnect();
+      started = true;
       load(current);
     }
   }, { rootMargin: '200px' });

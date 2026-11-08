@@ -1,6 +1,7 @@
 // Renders the report (summary card, holder chart, findings), the loader and status messages.
 
 import { COUNTED_KINDS } from './analyze.js';
+import { lockPanel } from './premium.js';
 import { $, el, money, pct, reduceMotion, riskOf, RISK_LABEL, shortAddress } from './util.js';
 
 const GROUPS = [
@@ -46,11 +47,17 @@ function creatorStat(label, value) {
   return box;
 }
 
-// state: null hides the card; 'loading' and 'error' are messages; otherwise a creator record.
+// state: null hides the card; 'locked', 'loading' and 'error' are messages; otherwise a creator record.
 export function renderCreator(state) {
   const card = $('creator-card');
   card.hidden = state === null;
   if (state === null) return;
+
+  if (state === 'locked') {
+    card.replaceChildren(lockPanel('Creator Track Record',
+      "See who launched this coin, how many coins they've launched, and how those coins did. Holders' scores include it."));
+    return;
+  }
 
   const head = el('div', 'creator-head');
   head.append(el('h3', '', 'Creator'));

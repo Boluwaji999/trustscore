@@ -19,6 +19,11 @@ export const FEED_CHAINS = ['4663', '8453', 'solana', '1'];
 // When set, every API call goes through it and gets cached. Leave empty to call the APIs directly.
 export const API_PROXY = '';
 
+// Your Worker's address (see worker/README.md), e.g. 'https://trustscore-proxy.you.workers.dev'.
+// Premium (Creator Track Record and the new coins feed) comes from it, for token holders only.
+// Leave empty and premium shows as "coming soon".
+export const PREMIUM_API = '';
+
 // Pons, the launchpad on Robinhood Chain. Every launch emits this event on the factory contract:
 // topic 1 is the coin and topic 3 is the wallet that launched it.
 export const PONS = {
