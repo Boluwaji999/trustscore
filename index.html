@@ -23,6 +23,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <!-- COMING SOON: set before anything draws, so the checker never flashes on screen. Remove at launch. -->
+  <script>document.documentElement.classList.add('coming-soon');</script>
 
   <!-- Free, privacy-friendly analytics. Create a site in Cloudflare Web Analytics, then paste your
        token in place of YOUR_TOKEN and remove the comment markers around this line.
@@ -53,9 +55,11 @@
 
   <main class="wrap">
     <section class="hero">
-      <p class="kicker"><span class="live-dot"></span>Robinhood Chain, Solana + 5 more networks</p>
+      <p class="kicker live-only"><span class="live-dot"></span>Robinhood Chain, Solana + 5 more networks</p>
+      <p class="kicker soon-only"><span class="live-dot"></span>Coming soon</p>
       <h1>Check a coin<br>before you buy it.</h1>
-      <p class="lede">Search a coin by name or paste its contract address. We scan for honeypots, hidden owners, unlocked liquidity and other rug-pull signals, then explain each finding in plain English.</p>
+      <p class="lede live-only">Search a coin by name or paste its contract address. We scan for honeypots, hidden owners, unlocked liquidity and other rug-pull signals, then explain each finding in plain English.</p>
+      <p class="soon-only soon-note">Every coin gets a risk score out of 10, the reasons behind it, and its creator's track record. Free, no sign-up. <strong>Launching soon.</strong></p>
 
       <form id="check-form" class="cmd" autocomplete="off">
         <label class="sr-only" for="chain">Network</label>
@@ -210,6 +214,7 @@
       }
     }
   </script>
-  <script type="module" src="js/main.js"></script>
+  <!-- COMING SOON: at launch, change js/soon.js back to js/main.js. -->
+  <script type="module" src="js/soon.js"></script>
 </body>
 </html>

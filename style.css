@@ -1022,3 +1022,32 @@ body:has(.report:not([hidden])) .flow-stage { opacity: 0.22; transition: opacity
   }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- coming soon mode ---------- */
+/* The <html> element gets .coming-soon from a line in index.html; removing that line launches the site. */
+
+.soon-only { display: none; }
+.coming-soon .soon-only { display: block; }
+.coming-soon .hero .kicker.soon-only { display: inline-flex; }
+.coming-soon .live-only,
+.coming-soon #check-form,
+.coming-soon .examples,
+.coming-soon #recent,
+.coming-soon #loader,
+.coming-soon #status,
+.coming-soon #report,
+.coming-soon #feed,
+.coming-soon .nav-links a { display: none !important; }
+.soon-note {
+  max-width: 520px;
+  margin: 28px 0 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--muted);
+}
+.soon-note strong { color: var(--green); font-weight: 600; }
+@media (max-width: 880px) {
+  .soon-note { margin: 24px auto 0; }
+}

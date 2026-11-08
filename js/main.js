@@ -6,7 +6,7 @@ import { getCreatorHistory } from './creator.js';
 import { detectChain, getMarket, getSecurity, RateLimitError } from './api.js';
 import { CHAINS, PONS, chainById } from './config.js';
 import { wireFeed } from './feed.js';
-import { wireFlow } from './flow.js';
+import { startHeroScene } from './hero.js';
 import { wireScroll } from './scroll.js';
 import { addRecent, wireRecent } from './recent.js';
 import { renderCreator, renderReport, setStatus, startLoader, stopLoader, wireHolderTooltip } from './report.js';
@@ -147,29 +147,6 @@ wireRecent(openCoin);
 wireFeed(openCoin);
 wireHolderTooltip();
 wireScroll();
-
-// The 3D scene loads separately, so the site still works if WebGL or the CDN isn't available.
-function webglAvailable() {
-  try {
-    return !!document.createElement('canvas').getContext('webgl2');
-  } catch {
-    return false;
-  }
-}
-
-async function startHeroScene() {
-  if (!reduceMotion && webglAvailable()) {
-    try {
-      const { wireFlow3D } = await import('./flow3d.js');
-      wireFlow3D();
-      return;
-    } catch (err) {
-      console.warn('3D scene unavailable, using the flat animation.', err);
-    }
-  }
-  document.documentElement.classList.add('no-3d');
-  wireFlow();
-}
 startHeroScene();
 
 document.querySelectorAll('[data-address]').forEach((btn) => {

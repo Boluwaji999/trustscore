@@ -8,6 +8,17 @@ Check a coin before you buy it. Search by name or paste a contract address and g
 - **Cost:** $0. A static site with no backend, no API keys and no accounts. Your only cost is a domain.
 - **Data:** [GoPlus Security](https://gopluslabs.io) (safety), [DexScreener](https://dexscreener.com) (price, liquidity, search), [GeckoTerminal](https://www.geckoterminal.com) (newest coins, and market data for small launchpad coins) and the public Robinhood Chain RPC (Pons launches). All free, with no keys.
 
+## Coming soon mode (currently on)
+
+The site shows a "Coming soon" page: the 3D scene, headline and feature list, with no checker,
+search or feed, and no calls to the data APIs. To launch, edit `index.html`:
+
+1. Delete the line `<script>document.documentElement.classList.add('coming-soon');</script>`
+   (and the comment above it).
+2. Change `js/soon.js` to `js/main.js` in the script tag near the bottom.
+
+Then push. Everything else is already in place.
+
 ## Features
 
 - **Search by name or ticker**, with logos, plus a warning when several coins share a name (copycats)
