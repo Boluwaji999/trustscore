@@ -1,5 +1,11 @@
 # TrustScore Worker
 
+> **Not used by the site yet.** The site currently checks token holding in the visitor's browser.
+> This Worker is the server-checked upgrade, but it needs free API keys before it can serve premium:
+> tested on 2026-11-08, GeckoTerminal, DexScreener and the public Robinhood Chain server all refuse
+> requests from Cloudflare's shared servers. To switch to it, add keyed data sources and point the
+> site's premium code at the Worker.
+
 A small server on Cloudflare's free plan. It does three jobs:
 
 - **Premium for token holders.** People connect a wallet and sign a free message. The Worker checks the

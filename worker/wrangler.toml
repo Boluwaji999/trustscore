@@ -1,3 +1,10 @@
 name = "trustscore-proxy"
 main = "dist/worker.js"
 compatibility_date = "2026-10-01"
+workers_dev = true
+
+# Public settings. PASS_SECRET is a secret, set with `npx wrangler secret put PASS_SECRET`.
+# Add TOKEN_ADDRESS here (or in the dashboard) when the token launches.
+[vars]
+TOKEN_SYMBOL = "TRUST"
+MIN_HOLD = "100000"

@@ -1,8 +1,9 @@
 // "New coins, already checked": newest pools per network, each run through the same checkup.
-// A premium feature: the Worker builds it (feed-core.js), caches it, and only sends it to holders.
+// A premium feature for token holders, built by feed-core.js and cached for a few minutes.
 
 import { chainById, FEED_CHAINS } from './config.js';
-import { isUnlocked, LockedError, lockPanel, premiumFetch } from './premium.js';
+import { buildFeed } from './feed-core.js';
+import { isUnlocked, lockPanel } from './premium.js';
 import { $, el, money, riskOf, RISK_LABEL, shortAgo, storeGet, storeSet } from './util.js';
 
 const PER_NETWORK = 6;
@@ -79,17 +80,16 @@ async function load(chainId) {
 
   skeleton();
   try {
-    const { items } = await premiumFetch(`/premium/feed?chain=${chainId}`);
+    const items = await buildFeed(chainId);
     if (run !== generation) return;
     if (!items.length) {
       $('feed-grid').replaceChildren(el('p', 'feed-empty', `No new coins on ${chain.name} right now.`));
       return;
     }
     render(items, chain);
-    storeSet(sessionStorage, cacheKey(chainId), { at: Date.now(), items });
-  } catch (err) {
+    if (!items.some((i) => i.state === 'limited')) storeSet(sessionStorage, cacheKey(chainId), { at: Date.now(), items });
+  } catch {
     if (run !== generation) return;
-    if (err instanceof LockedError) return showLocked();
     $('feed-grid').replaceChildren(el('p', 'feed-empty', "Couldn't load new coins right now. Try again in a minute."));
   }
 }

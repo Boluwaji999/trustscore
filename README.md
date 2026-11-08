@@ -19,12 +19,25 @@ search or feed, and no calls to the data APIs. To launch, edit `index.html`:
 
 Then push. Everything else is already in place.
 
+## Premium token settings
+
+In `js/config.js`, `TOKEN` controls premium:
+
+- `address`: the token's contract on Robinhood Chain. Leave empty until it launches.
+- `symbol`: the ticker shown on the site.
+- `minHold`: whole tokens a wallet must hold.
+- `allowWallets`: wallets let in without holding, such as your own for testing.
+
+The holding check runs in the visitor's browser, so someone technical could get around it. The
+server-checked version is in `worker/`, but it needs free API keys first, because the free data
+services block requests from Cloudflare's servers.
+
 ## Features
 
 - **Search by name or ticker**, with logos, plus a warning when several coins share a name (copycats)
 - **Auto-detects the network** from the address
 - **Risk score out of 10** with grouped findings: High risk, Caution, Notes, Passed
-- **Premium for TrustScore token holders:** connect a wallet and sign a free message to unlock Creator Track Record and the new coins feed. Holding is checked on the server (see `worker/README.md`).
+- **Premium for TrustScore token holders:** connect a wallet holding enough tokens to unlock Creator Track Record and the new coins feed. Basic reports stay free. Set the token in `TOKEN` in `js/config.js`.
 - **Creator Track Record** for Pons coins: who launched it, how many coins they have launched, how many are still trading, and their best coin
 - **Top 10 holders chart** with pools, locked and burned wallets labeled
 - **Live "new coins" feed** of the newest coins on Robinhood Chain, Base, Solana and Ethereum, already scored
@@ -44,10 +57,10 @@ Then push. Everything else is already in place.
 | `js/main.js` | Wires everything together, runs a check |
 | `js/config.js` | Networks, feed tabs, optional proxy URL |
 | `js/api.js` | All calls to the data services |
-| `js/premium.js` | Wallet sign-in, the holder pass, and the locked panels |
-| `js/creator.js` | Asks the Worker for Creator Track Record |
-| `js/creator-core.js` | Creator Track Record rules (run on the Worker) |
-| `js/feed-core.js` | Builds the new coins feed (run on the Worker) |
+| `js/premium.js` | Wallet connect, the token balance check, and the locked panels |
+| `js/creator.js` | Creator Track Record for holders, with a short cache |
+| `js/creator-core.js` | Creator Track Record rules |
+| `js/feed-core.js` | Builds the new coins feed |
 | `js/analyze.js` | **The rules:** every finding and its penalty, for EVM and Solana |
 | `js/report.js` | Draws the report, holder chart and loader |
 | `js/search.js` | Name search dropdown |
@@ -57,7 +70,7 @@ Then push. Everything else is already in place.
 | `js/scroll.js` | Progress bar, hero fade and section reveals on scroll |
 | `js/share.js` | Result image |
 | `js/recent.js` | Recent checks |
-| `worker/` | The Worker: premium sign-in, premium data and caching (see `worker/README.md`) |
+| `worker/` | Optional server-checked premium and caching, not used yet (see `worker/README.md`) |
 
 To change how strict the checker is, edit `js/analyze.js`. Each finding has a penalty, the score is `(100 − penalties) ÷ 10`, and two or more red flags cap the score at 4.
 

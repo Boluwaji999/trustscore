@@ -1,6 +1,6 @@
 // Builds the "new coins" feed: the newest pools on a network, each run through the same checkup.
-// Runs on the Worker, which caches the result, so the free APIs see one request per few minutes
-// rather than one per visitor.
+// Runs in the browser for token holders. The Worker (worker/) can also run it, for the
+// server-checked version of premium.
 
 import { analyze } from './analyze.js';
 import { getNewPools, getSecurity, RateLimitError } from './api.js';

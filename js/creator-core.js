@@ -1,6 +1,6 @@
 // Creator Track Record rules: who launched a Pons coin, and how their other coins are doing.
-// Reads launches from the public Robinhood Chain RPC. This runs on the Worker (premium data is
-// served only to token holders), so it must not touch the browser.
+// Reads launches from the public Robinhood Chain RPC. Runs in the browser for token holders, and
+// the Worker (worker/) can also run it, so it must not use browser-only features.
 //
 // The rules below come from measuring real Pons launches in November 2026. Almost every coin goes
 // quiet within days whoever made it, so dead coins alone prove nothing, while a past coin that is

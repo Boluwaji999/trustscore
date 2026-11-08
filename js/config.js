@@ -19,10 +19,15 @@ export const FEED_CHAINS = ['4663', '8453', 'solana', '1'];
 // When set, every API call goes through it and gets cached. Leave empty to call the APIs directly.
 export const API_PROXY = '';
 
-// Your Worker's address (see worker/README.md), e.g. 'https://trustscore-proxy.you.workers.dev'.
-// Premium (Creator Track Record and the new coins feed) comes from it, for token holders only.
-// Leave empty and premium shows as "coming soon".
-export const PREMIUM_API = '';
+// Premium (Creator Track Record and the new coins feed) unlocks for wallets holding the TrustScore
+// token. The check runs in the visitor's browser, so it can be bypassed by someone technical; see
+// worker/README.md for the server-checked version.
+export const TOKEN = {
+  address: '', // the token's contract on Robinhood Chain. Empty until it launches.
+  symbol: 'TRUST', // the ticker shown on the site
+  minHold: 100000, // whole tokens a wallet must hold
+  allowWallets: [], // wallets let in without holding, e.g. your own for testing: ['0xabc...']
+};
 
 // Pons, the launchpad on Robinhood Chain. Every launch emits this event on the factory contract:
 // topic 1 is the coin and topic 3 is the wallet that launched it.
